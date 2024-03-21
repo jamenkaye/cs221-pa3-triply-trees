@@ -2,8 +2,7 @@
 # Ignore the compiled executables that end with .o
 *.o
 
-# Ignore output images
-images-output/
-
 # Ignore specific generated files
 testpa3
+
+# Note: secondary .gitignore in images-output folder as placeholder
