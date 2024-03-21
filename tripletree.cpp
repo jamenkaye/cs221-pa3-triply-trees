@@ -59,6 +59,9 @@
       */
 TripleTree::TripleTree(PNG& imIn) {
     // add your implementation below
+
+    pair<unsigned int, unsigned int> ul(0, 0);
+    this->root = BuildNode(imIn, ul, imIn.width(), imIn.height());
 	
 }
 
@@ -156,8 +159,88 @@ void TripleTree::Copy(const TripleTree& other) {
  */
 Node* TripleTree::BuildNode(PNG& im, pair<unsigned int, unsigned int> ul, unsigned int w, unsigned int h) {
     // replace the line below with your implementation
-    return nullptr;
+    // return nullptr;
+
+    if ((w == 0) || (h == 0)){
+        // If either dimension is 0, there are no pixels.
+        return nullptr;
+    }
+
+    Node* returnNode = new Node(ul, w, h); // Child nodes are initialized to null by default
+    returnNode->avg = avgColor(im, ul, w, h);
+
+    if ((w == 1) && (h == 1)){
+        // If its exactly 1 pixel, don't need to make any children; just return
+        return returnNode;
+    }
+
+    // Determine dimensions of child nodes:
+    if (w >= h) {
+        // "If the region to be divided is a square, then apply the Split wide behaviour" - tripletree.h
+        unsigned int w_A = w / 3;
+        unsigned int w_B = w_A;
+        unsigned int w_C = w_A;
+
+        if (w % 3 == 1){
+            w_B++;
+        } else if (w % 3 == 2){
+            w_A++;
+            w_C++; // <---- omg C++ language title drop !!1!1!
+        }
+
+        pair<unsigned int, unsigned int> ul_B(ul.first + w_A, ul.second);
+        pair<unsigned int, unsigned int> ul_C(ul.first + w_A + w_B, ul.second);
+
+        returnNode->A = BuildNode(im, ul, w_A, h);
+        returnNode->B = BuildNode(im, ul_B, w_B, h);
+        returnNode->C = BuildNode(im, ul_C, w_C, h);
+
+    } else {
+        unsigned int h_A = h / 3;
+        unsigned int h_B = h_A;
+        unsigned int h_C = h_A;
+
+        if (h % 3 == 1){
+            h_B++;
+        } else if (h % 3 == 2){
+            h_A++;
+            h_C++;
+        }
+
+        pair<unsigned int, unsigned int> ul_B(ul.first, ul.second + h_A);
+        pair<unsigned int, unsigned int> ul_C(ul.first, ul.second + h_A + h_C);
+
+        returnNode->A = BuildNode(im, ul, w, h_A);
+        returnNode->B = BuildNode(im, ul_B, w, h_B);
+        returnNode->C = BuildNode(im, ul_C, w, h_C);
+    }
+
+    return returnNode;
 }
 
 /* ===== IF YOU HAVE DEFINED PRIVATE MEMBER FUNCTIONS IN tripletree_private.h, IMPLEMENT THEM HERE ====== */
 
+/**
+ * Return the average color of this section of the image.
+ * Assumes that the entire rectanglular region starting at ul with height h and width w is in range for PNG im.
+ * 
+ * Also disregards the alpha channel - probably not needed?
+*/
+RGBAPixel TripleTree::avgColor(PNG& im, pair<unsigned int, unsigned int> ul, unsigned int w, unsigned int h){
+    unsigned int totalRed = 0;
+    unsigned int totalGreen = 0;
+    unsigned int totalBlue = 0;
+    unsigned int numPix = (w * h);
+    RGBAPixel* currPix;
+
+    for (unsigned int x = ul.first; x < (ul.first + w); x++){
+        for (unsigned int y = ul.second; y < (ul.second + h); y++){
+            currPix = im.getPixel(x, y);
+            totalRed += currPix->r;
+            totalGreen += currPix->g;
+            totalBlue += currPix->b;
+        }
+    }
+
+    return RGBAPixel(totalRed/numPix, totalGreen/numPix, totalBlue/numPix);
+}
