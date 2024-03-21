@@ -1,0 +1,9 @@
+# What files to not commit?
+# Ignore the compiled executables that end with .o
+*.o
+
+# Ignore output images
+images-output/
+
+# Ignore specific generated files
+testpa3
