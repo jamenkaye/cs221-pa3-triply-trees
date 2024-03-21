@@ -75,7 +75,11 @@ TripleTree::TripleTree(PNG& imIn) {
  */
 PNG TripleTree::Render() const {
     // replace the line below with your implementation
-    return PNG();
+    // return PNG();
+
+    PNG im(this->root->width, this->root->height);
+    renderRecursive(im, this->root);
+    return im;
 }
 
 /*
@@ -243,4 +247,35 @@ RGBAPixel TripleTree::avgColor(PNG& im, pair<unsigned int, unsigned int> ul, uns
     }
 
     return RGBAPixel(totalRed/numPix, totalGreen/numPix, totalBlue/numPix);
+}
+
+/**
+ * recursive helper function for render()
+*/
+void TripleTree::renderRecursive(PNG& im, Node* node) const {
+    
+    if (node == nullptr){
+        return;
+    }
+
+    if ((node->A == nullptr) && (node->B == nullptr) && (node->C == nullptr)){
+        // If the node has 0 children, fill in pixels.
+
+        for (unsigned int x = node->upperleft.first; x < node->upperleft.first + node->width; x++){
+            for (unsigned int y = node->upperleft.second; y < node->upperleft.first + node->width; y++){
+                *im.getPixel(x, y) = node->avg;
+            }
+        }
+        
+    } else {
+        // otherwise the node has >=1 child -> recurse.
+        // if >= 1 child, A and C are guaranteed, but need to check if B exists.
+
+        renderRecursive(im, node->A);
+        renderRecursive(im, node->C);
+
+        if (node->B != nullptr){
+            renderRecursive(im, node->B);
+        }
+    }
 }

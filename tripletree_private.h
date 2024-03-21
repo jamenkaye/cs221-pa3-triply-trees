@@ -12,3 +12,5 @@
  // begin your declarations below
 
 RGBAPixel avgColor(PNG& im, pair<unsigned int, unsigned int> ul, unsigned int w, unsigned int h);
+
+void renderRecursive(PNG& im, Node* node) const;
