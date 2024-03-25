@@ -139,7 +139,8 @@ int TripleTree::NumLeaves() const {
      */
 void TripleTree::Clear() {
     // add your implementation below
-	
+	Clear(root); //start from the root
+    root = NULL; 
 }
 
 /**
@@ -278,4 +279,21 @@ void TripleTree::renderRecursive(PNG& im, Node* node) const {
             renderRecursive(im, node->B);
         }
     }
+}
+
+/**
+ * recursive helper function for clear()
+*/
+void TripleTree::Clear(Node*& node) {
+    //null base case
+    if (node == NULL) {
+        return;
+    }
+
+    Clear(node->A); //clear left/upper
+    Clear(node->B); //clear middle
+    Clear(node->C); //clear right/lower
+
+    delete node;
+    node = NULL;
 }
