@@ -95,7 +95,8 @@ PNG TripleTree::Render() const {
  */
 void TripleTree::Prune(double tol) {
     // add your implementation below
-	
+
+    recursivePrune(this->root, this->root->avg, tol);
 }
 
 /**
@@ -296,4 +297,52 @@ void TripleTree::Clear(Node*& node) {
 
     delete node;
     node = NULL;
+}
+
+/**
+ * Helper function for prune()
+ * Finds the maximum distance betwee the given color and one of the children of node
+*/
+double TripleTree::maxDistToChildColor(Node* node, RGBAPixel& color) const {
+    
+    if (node == NULL){
+        return 0.0;
+    }
+
+    if (node->A == NULL){
+        // If the node is a leaf, calculate the distance and return it. Node must be a leaf is child A is null.
+        return (node->avg).distanceTo(color);
+    }
+
+    // If the node is not a leaf, return the max dist of any of the children
+    return std::max(maxDistToChildColor(node->A, color), 
+                    std::max(maxDistToChildColor(node->B, color), maxDistToChildColor(node->C, color)));
+}
+
+/**
+ * Recursive helper function for prune that does the pruning
+*/
+void TripleTree::recursivePrune(Node* node, RGBAPixel& color, double tol){
+    if (node == NULL){
+        return;
+    }
+
+    if (TripleTree::maxDistToChildColor(node, color) <= tol){
+        // Delete children
+        delete node->A;
+        node->A = NULL;
+        delete node->C;
+        node->C = NULL;
+
+        if (node->B != NULL){
+            delete node->B;
+            node->B = NULL;
+        }
+
+    } else {
+        // Check children
+        recursivePrune(node->A, color, tol);
+        recursivePrune(node->B, color, tol);
+        recursivePrune(node->C, color, tol);
+    }
 }

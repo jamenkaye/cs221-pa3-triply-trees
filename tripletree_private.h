@@ -16,3 +16,7 @@ RGBAPixel avgColor(PNG& im, pair<unsigned int, unsigned int> ul, unsigned int w,
 void renderRecursive(PNG& im, Node* node) const;
 
 void Clear(Node*& node);
+
+double maxDistToChildColor(Node* node, RGBAPixel& color) const;
+
+void recursivePrune(Node* node, RGBAPixel& color, double tol);
