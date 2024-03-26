@@ -158,6 +158,9 @@ void TripleTree::Copy(const TripleTree& other) {
 /**
  * Private helper function for the constructor. Recursively builds
  * the tree according to the specification of the constructor.
+ * 
+ * Note: Can't do iterative color averaging: https://piazza.com/class/lr2vkjsws5p7bb/post/1722
+ * 
  * @param im - reference image used for construction
  * @param ul - upper left point of node to be built's rectangle.
  * @param w - width of node to be built's rectangle.
@@ -173,16 +176,16 @@ Node* TripleTree::BuildNode(PNG& im, pair<unsigned int, unsigned int> ul, unsign
     }
 
     Node* returnNode = new Node(ul, w, h); // Child nodes are initialized to null by default
-    returnNode->avg = avgColor(im, ul, w, h);
 
     if ((w == 1) && (h == 1)){
-        // If its exactly 1 pixel, don't need to make any children; just return
+        // If its exactly 1 pixel, don't need to make any children
+
+        returnNode->avg = *im.getPixel(ul.first, ul.second);
         return returnNode;
     }
 
     // Determine dimensions of child nodes:
     int longDimension = std::max(w, h);
-    int shortDimension = std::min(w, h);
 
     int dividedA = longDimension / 3;
     int dividedB = dividedA;
@@ -201,10 +204,12 @@ Node* TripleTree::BuildNode(PNG& im, pair<unsigned int, unsigned int> ul, unsign
 
         pair<unsigned int, unsigned int> ul_B(ul.first + dividedA, ul.second);
         pair<unsigned int, unsigned int> ul_C(ul.first + dividedA + dividedB, ul.second);
-
+        
         returnNode->A = BuildNode(im, ul, dividedA, h);
         returnNode->B = BuildNode(im, ul_B, dividedB, h);
         returnNode->C = BuildNode(im, ul_C, dividedC, h);
+
+        returnNode->avg = avgColor(returnNode, dividedA, dividedB);
 
     } else {
         pair<unsigned int, unsigned int> ul_B(ul.first, ul.second + dividedA);
@@ -213,6 +218,8 @@ Node* TripleTree::BuildNode(PNG& im, pair<unsigned int, unsigned int> ul, unsign
         returnNode->A = BuildNode(im, ul, w, dividedA);
         returnNode->B = BuildNode(im, ul_B, w, dividedB);
         returnNode->C = BuildNode(im, ul_C, w, dividedC);
+
+        returnNode->avg = avgColor(returnNode, dividedA, dividedB);
     }
 
     return returnNode;
@@ -221,28 +228,26 @@ Node* TripleTree::BuildNode(PNG& im, pair<unsigned int, unsigned int> ul, unsign
 /* ===== IF YOU HAVE DEFINED PRIVATE MEMBER FUNCTIONS IN tripletree_private.h, IMPLEMENT THEM HERE ====== */
 
 /**
- * Return the average color of this section of the image.
- * Assumes that the entire rectanglular region starting at ul with height h and width w is in range for PNG im.
+ * Return the WEIGHTED average color of the children nodes of this node
  * 
- * Also disregards the alpha channel - probably not needed?
+ * Assumes that the node has at least 2 children.
 */
-RGBAPixel TripleTree::avgColor(PNG& im, pair<unsigned int, unsigned int> ul, unsigned int w, unsigned int h){
-    unsigned int totalRed = 0;
-    unsigned int totalGreen = 0;
-    unsigned int totalBlue = 0;
-    unsigned int numPix = (w * h);
-    RGBAPixel* currPix;
+RGBAPixel TripleTree::avgColor(Node* node, int dividedA, int dividedB){
+    int longDimension = std::max(node->width, node->height);
 
-    for (unsigned int x = ul.first; x < (ul.first + w); x++){
-        for (unsigned int y = ul.second; y < (ul.second + h); y++){
-            currPix = im.getPixel(x, y);
-            totalRed += currPix->r;
-            totalGreen += currPix->g;
-            totalBlue += currPix->b;
-        }
+    int totalR = (node->A->avg.r + node->C->avg.r) * dividedA;
+    int totalG = (node->A->avg.g + node->C->avg.g) * dividedA;
+    int totalB = (node->A->avg.b + node->C->avg.b) * dividedA;
+    int totalA = (node->A->avg.a + node->C->avg.a) * dividedA;
+
+    if (node->B != NULL){
+        totalR += node->B->avg.r * dividedB;
+        totalG += node->B->avg.g * dividedB;
+        totalB += node->B->avg.b * dividedB;
+        totalA += node->B->avg.a * dividedB;
     }
 
-    return RGBAPixel(totalRed/numPix, totalGreen/numPix, totalBlue/numPix);
+    return RGBAPixel(totalR/longDimension, totalG/longDimension, totalB/longDimension, totalA/longDimension);
 }
 
 /**

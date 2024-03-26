@@ -15,6 +15,11 @@
 #define IMAGE_5 "pruneto16leaves-8x5"
 #define IMAGE_6 "malachi-60x87"
 
+// Added by Jamen:
+#define IMAGE_7 "starry_night_2560x2027"
+#define MAX_IMG_NUM 7
+
+
 #include <iostream>
 #include <string>
 
@@ -47,7 +52,7 @@ int main(int argc, char* argv[]) {
 	// clamp image_number to allowable range (change these if you add your own images)
 	if (image_number < 1)
 		image_number = 1;
-	if (image_number > 6)
+	if (image_number > MAX_IMG_NUM) // updated by Jamen
 		image_number = 6;
 
 	TestBuildRender(image_number);
@@ -93,6 +98,10 @@ void TestBuildRender(int image_num) {
 			input_path = input_path + IMAGE_6 + ".png";
 			output_path = output_path + IMAGE_6 + "-render.png";
 			break;
+		case 7: // Added by Jamen
+			input_path = input_path + IMAGE_7 + ".png";
+			output_path = output_path + IMAGE_7 + "-render.png";
+			break;
 		default:
 			input_path = input_path + IMAGE_6 + ".png";
 			output_path = output_path + IMAGE_6 + "-render.png";
@@ -101,6 +110,7 @@ void TestBuildRender(int image_num) {
 	PNG input;
 	input.readFromFile(input_path);
 
+	cout << "Input image: " << input_path << endl; // Added by Jamen
 	cout << "Constructing TripleTree from image... ";
 	TripleTree t(input);
 	cout << "done." << endl;
