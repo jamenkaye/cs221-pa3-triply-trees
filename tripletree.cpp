@@ -264,7 +264,7 @@ void TripleTree::renderRecursive(PNG& im, Node* node) const {
         // If the node has 0 children, fill in pixels.
 
         for (unsigned int x = node->upperleft.first; x < node->upperleft.first + node->width; x++){
-            for (unsigned int y = node->upperleft.second; y < node->upperleft.first + node->width; y++){
+            for (unsigned int y = node->upperleft.second; y < node->upperleft.second + node->height; y++){
                 *im.getPixel(x, y) = node->avg;
             }
         }
