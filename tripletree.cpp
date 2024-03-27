@@ -95,8 +95,7 @@ PNG TripleTree::Render() const {
  */
 void TripleTree::Prune(double tol) {
     // add your implementation below
-
-    recursivePrune(this->root, this->root->avg, tol);
+	
 }
 
 /**
@@ -152,15 +151,18 @@ void TripleTree::Clear() {
  */
 void TripleTree::Copy(const TripleTree& other) {
     // add your implementation below
-	
+	if (this == &other) { //check if the tree is the same prior to copying
+        return;
+    }
+
+    Clear();
+
+    root = copyNode(other.root);
 }
 
 /**
  * Private helper function for the constructor. Recursively builds
  * the tree according to the specification of the constructor.
- * 
- * Note: Can't do iterative color averaging: https://piazza.com/class/lr2vkjsws5p7bb/post/1722
- * 
  * @param im - reference image used for construction
  * @param ul - upper left point of node to be built's rectangle.
  * @param w - width of node to be built's rectangle.
@@ -176,50 +178,52 @@ Node* TripleTree::BuildNode(PNG& im, pair<unsigned int, unsigned int> ul, unsign
     }
 
     Node* returnNode = new Node(ul, w, h); // Child nodes are initialized to null by default
+    returnNode->avg = avgColor(im, ul, w, h);
 
     if ((w == 1) && (h == 1)){
-        // If its exactly 1 pixel, don't need to make any children
-
-        returnNode->avg = *im.getPixel(ul.first, ul.second);
+        // If its exactly 1 pixel, don't need to make any children; just return
         return returnNode;
     }
 
     // Determine dimensions of child nodes:
-    int longDimension = std::max(w, h);
-
-    int dividedA = longDimension / 3;
-    int dividedB = dividedA;
-    int dividedC = dividedA;
-
-    if (longDimension % 3 == 1){
-        dividedB++;
-    } else if (longDimension % 3 == 2){
-        dividedA++;
-        dividedC++; // <---- omg C++ language title drop !!1!1!
-    }
-
     if (w >= h) {
         // "If the region to be divided is a square, then apply the Split wide behaviour" - tripletree.h
-        // Thats why this case includes the equality
+        unsigned int w_A = w / 3;
+        unsigned int w_B = w_A;
+        unsigned int w_C = w_A;
 
-        pair<unsigned int, unsigned int> ul_B(ul.first + dividedA, ul.second);
-        pair<unsigned int, unsigned int> ul_C(ul.first + dividedA + dividedB, ul.second);
-        
-        returnNode->A = BuildNode(im, ul, dividedA, h);
-        returnNode->B = BuildNode(im, ul_B, dividedB, h);
-        returnNode->C = BuildNode(im, ul_C, dividedC, h);
+        if (w % 3 == 1){
+            w_B++;
+        } else if (w % 3 == 2){
+            w_A++;
+            w_C++; // <---- omg C++ language title drop !!1!1!
+        }
 
-        returnNode->avg = avgColor(returnNode, dividedA, dividedB);
+        pair<unsigned int, unsigned int> ul_B(ul.first + w_A, ul.second);
+        pair<unsigned int, unsigned int> ul_C(ul.first + w_A + w_B, ul.second);
+
+        returnNode->A = BuildNode(im, ul, w_A, h);
+        returnNode->B = BuildNode(im, ul_B, w_B, h);
+        returnNode->C = BuildNode(im, ul_C, w_C, h);
 
     } else {
-        pair<unsigned int, unsigned int> ul_B(ul.first, ul.second + dividedA);
-        pair<unsigned int, unsigned int> ul_C(ul.first, ul.second + dividedA + dividedB);
+        unsigned int h_A = h / 3;
+        unsigned int h_B = h_A;
+        unsigned int h_C = h_A;
 
-        returnNode->A = BuildNode(im, ul, w, dividedA);
-        returnNode->B = BuildNode(im, ul_B, w, dividedB);
-        returnNode->C = BuildNode(im, ul_C, w, dividedC);
+        if (h % 3 == 1){
+            h_B++;
+        } else if (h % 3 == 2){
+            h_A++;
+            h_C++;
+        }
 
-        returnNode->avg = avgColor(returnNode, dividedA, dividedB);
+        pair<unsigned int, unsigned int> ul_B(ul.first, ul.second + h_A);
+        pair<unsigned int, unsigned int> ul_C(ul.first, ul.second + h_A + h_C);
+
+        returnNode->A = BuildNode(im, ul, w, h_A);
+        returnNode->B = BuildNode(im, ul_B, w, h_B);
+        returnNode->C = BuildNode(im, ul_C, w, h_C);
     }
 
     return returnNode;
@@ -228,26 +232,28 @@ Node* TripleTree::BuildNode(PNG& im, pair<unsigned int, unsigned int> ul, unsign
 /* ===== IF YOU HAVE DEFINED PRIVATE MEMBER FUNCTIONS IN tripletree_private.h, IMPLEMENT THEM HERE ====== */
 
 /**
- * Return the WEIGHTED average color of the children nodes of this node
+ * Return the average color of this section of the image.
+ * Assumes that the entire rectanglular region starting at ul with height h and width w is in range for PNG im.
  * 
- * Assumes that the node has at least 2 children.
+ * Also disregards the alpha channel - probably not needed?
 */
-RGBAPixel TripleTree::avgColor(Node* node, int dividedA, int dividedB){
-    int longDimension = std::max(node->width, node->height);
+RGBAPixel TripleTree::avgColor(PNG& im, pair<unsigned int, unsigned int> ul, unsigned int w, unsigned int h){
+    unsigned int totalRed = 0;
+    unsigned int totalGreen = 0;
+    unsigned int totalBlue = 0;
+    unsigned int numPix = (w * h);
+    RGBAPixel* currPix;
 
-    int totalR = (node->A->avg.r + node->C->avg.r) * dividedA;
-    int totalG = (node->A->avg.g + node->C->avg.g) * dividedA;
-    int totalB = (node->A->avg.b + node->C->avg.b) * dividedA;
-    int totalA = (node->A->avg.a + node->C->avg.a) * dividedA;
-
-    if (node->B != NULL){
-        totalR += node->B->avg.r * dividedB;
-        totalG += node->B->avg.g * dividedB;
-        totalB += node->B->avg.b * dividedB;
-        totalA += node->B->avg.a * dividedB;
+    for (unsigned int x = ul.first; x < (ul.first + w); x++){
+        for (unsigned int y = ul.second; y < (ul.second + h); y++){
+            currPix = im.getPixel(x, y);
+            totalRed += currPix->r;
+            totalGreen += currPix->g;
+            totalBlue += currPix->b;
+        }
     }
 
-    return RGBAPixel(totalR/longDimension, totalG/longDimension, totalB/longDimension, totalA/longDimension);
+    return RGBAPixel(totalRed/numPix, totalGreen/numPix, totalBlue/numPix);
 }
 
 /**
@@ -263,7 +269,7 @@ void TripleTree::renderRecursive(PNG& im, Node* node) const {
         // If the node has 0 children, fill in pixels.
 
         for (unsigned int x = node->upperleft.first; x < node->upperleft.first + node->width; x++){
-            for (unsigned int y = node->upperleft.second; y < node->upperleft.second + node->height; y++){
+            for (unsigned int y = node->upperleft.second; y < node->upperleft.first + node->width; y++){
                 *im.getPixel(x, y) = node->avg;
             }
         }
@@ -299,49 +305,21 @@ void TripleTree::Clear(Node*& node) {
 }
 
 /**
- * Helper function for prune()
- * Finds the maximum distance betwee the given color and one of the children of node
+ * recursive helper function for copy()
 */
-double TripleTree::maxDistToChildColor(Node* node, RGBAPixel& color) const {
-    
-    if (node == NULL){
-        return 0.0;
+Node* TripleTree::copyNode(Node* other) {
+    if (other == NULL) { //if the tree is already the same
+        return NULL;
     }
 
-    if (node->A == NULL){
-        // If the node is a leaf, calculate the distance and return it. Node must be a leaf is child A is null.
-        return (node->avg).distanceTo(color);
-    }
+    //create a new node and copy data into it
+    Node* newNode = new Node(other->upperleft, other->width, other->height);
+    newNode->avg = other->avg;
 
-    // If the node is not a leaf, return the max dist of any of the children
-    return std::max(maxDistToChildColor(node->A, color), 
-                    std::max(maxDistToChildColor(node->B, color), maxDistToChildColor(node->C, color)));
-}
+    //copy the children recursively
+    newNode->A = copyNode(other->A);
+    newNode->B = copyNode(other->B);
+    newNode->C = copyNode(other->C);
 
-/**
- * Recursive helper function for prune that does the pruning
-*/
-void TripleTree::recursivePrune(Node* node, RGBAPixel& color, double tol){
-    if (node == NULL){
-        return;
-    }
-
-    if (TripleTree::maxDistToChildColor(node, color) <= tol){
-        // Delete children
-        delete node->A;
-        node->A = NULL;
-        delete node->C;
-        node->C = NULL;
-
-        if (node->B != NULL){
-            delete node->B;
-            node->B = NULL;
-        }
-
-    } else {
-        // Check children
-        recursivePrune(node->A, color, tol);
-        recursivePrune(node->B, color, tol);
-        recursivePrune(node->C, color, tol);
-    }
+    return newNode;
 }
