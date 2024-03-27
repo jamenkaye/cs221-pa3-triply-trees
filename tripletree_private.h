@@ -17,6 +17,8 @@ void renderRecursive(PNG& im, Node* node) const;
 
 void Clear(Node*& node);
 
+Node* copyNode(Node* other);
+
 double maxDistToChildColor(Node* node, RGBAPixel& color) const;
 
 void recursivePrune(Node* node, RGBAPixel& color, double tol);

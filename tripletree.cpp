@@ -152,7 +152,13 @@ void TripleTree::Clear() {
  */
 void TripleTree::Copy(const TripleTree& other) {
     // add your implementation below
-	
+	if (this == &other) { //check if the tree is the same prior to copying
+        return;
+    }
+
+    Clear();
+
+    root = copyNode(other.root);
 }
 
 /**
@@ -296,6 +302,26 @@ void TripleTree::Clear(Node*& node) {
 
     delete node;
     node = NULL;
+}
+
+/**
+ * recursive helper function for copy()
+*/
+Node* TripleTree::copyNode(Node* other) {
+    if (other == NULL) { //if the tree is already the same
+        return NULL;
+    }
+
+    //create a new node and copy data into it
+    Node* newNode = new Node(other->upperleft, other->width, other->height);
+    newNode->avg = other->avg;
+
+    //copy the children recursively
+    newNode->A = copyNode(other->A);
+    newNode->B = copyNode(other->B);
+    newNode->C = copyNode(other->C);
+
+    return newNode;
 }
 
 /**
