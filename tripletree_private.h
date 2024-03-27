@@ -11,10 +11,14 @@
 
  // begin your declarations below
 
-RGBAPixel avgColor(PNG& im, pair<unsigned int, unsigned int> ul, unsigned int w, unsigned int h);
+RGBAPixel avgColor(Node* node, int dividedA, int dividedB);
 
 void renderRecursive(PNG& im, Node* node) const;
 
 void Clear(Node*& node);
 
 Node* copyNode(Node* other);
+
+double maxDistToChildColor(Node* node, RGBAPixel& color) const;
+
+void recursivePrune(Node* node, RGBAPixel& color, double tol);
