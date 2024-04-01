@@ -137,7 +137,8 @@ void TripleTree::RotateCCW() {
  */
 int TripleTree::NumLeaves() const {
     // replace the line below with your implementation
-    return -1;
+
+    return recursiveNumLeaves(root);
 }
 
 /**
@@ -376,6 +377,32 @@ void TripleTree::recursivePrune(Node* node, RGBAPixel& color, double tol){
         recursivePrune(node->B, color, tol);
         recursivePrune(node->C, color, tol);
     }
+}
+
+/**
+ * Recursive helper function for NumLeaves, returns numleaves
+*/
+int TripleTree::recursiveNumLeaves(Node* node) {
+    if (root == NULL){
+        return 0;
+    }
+
+    Node* rootNode = node;
+    int numLeaves = 0;
+
+    //goes down every branch
+    if (node->A != NULL) {
+        recursiveNumLeaves(node->A);
+    }
+    if (node->B != NULL) {
+        recursiveNumLeaves(node->B);
+    }
+    if (node->C != NULL) {
+        recursiveNumLeaves(node->C);
+    }
+
+    numLeaves++;
+    return numLeaves;
 }
 
 /**
