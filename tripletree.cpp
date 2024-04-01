@@ -120,7 +120,14 @@ void TripleTree::FlipHorizontal() {
  */
 void TripleTree::RotateCCW() {
     // add your implementation below
-	
+
+    // Need to swap root's width and height.
+    swapHeightWidth(root);
+    // root->upperleft will still be (0, 0).
+
+    recursiveRotateCCW(root);
+
+    return;
 }
 
 /*
@@ -260,13 +267,13 @@ RGBAPixel TripleTree::avgColor(Node* node, int dividedA, int dividedB){
  * recursive helper function for render()
 */
 void TripleTree::renderRecursive(PNG& im, Node* node) const {
-    
+
     if (node == nullptr){
         return;
     }
 
-    if ((node->A == nullptr) && (node->B == nullptr) && (node->C == nullptr)){
-        // If the node has 0 children, fill in pixels.
+    if (node->A == nullptr){
+        // If A is null -> node has 0 children -> fill in pixels.
 
         for (unsigned int x = node->upperleft.first; x < node->upperleft.first + node->width; x++){
             for (unsigned int y = node->upperleft.second; y < node->upperleft.second + node->height; y++){
@@ -279,11 +286,10 @@ void TripleTree::renderRecursive(PNG& im, Node* node) const {
         // if >= 1 child, A and C are guaranteed, but need to check if B exists.
 
         renderRecursive(im, node->A);
-        renderRecursive(im, node->C);
-
         if (node->B != nullptr){
             renderRecursive(im, node->B);
         }
+        renderRecursive(im, node->C);
     }
 }
 
@@ -370,4 +376,80 @@ void TripleTree::recursivePrune(Node* node, RGBAPixel& color, double tol){
         recursivePrune(node->B, color, tol);
         recursivePrune(node->C, color, tol);
     }
+}
+
+/**
+ * Recursie helper function for rotateCCW
+*/
+void TripleTree::recursiveRotateCCW(Node* node){
+
+    if (node == NULL){
+        return;
+    }
+
+    if (node->A == NULL){
+        // If A is null, node must not have any children.
+        // This node's UL, height, and width were all updated when it's parent node was "node".
+        return;
+    }
+    // Now, children A and C are guaranteed. B may still be null.
+
+    int b_min_dim = 0;
+
+    // Swap children dimensions:
+    swapHeightWidth(node->A);
+    if (node->B != NULL){
+        swapHeightWidth(node->B);
+        b_min_dim = std::min(node->B->height, node->B->width);
+    }
+    swapHeightWidth(node->C);
+
+
+    // if (node->C->upperleft.second == node->upperleft.second){
+        // Same y-vals before updating -> need to do a landscape to portrait rotation
+
+    if ((2*node->A->height + b_min_dim) == node->height){
+        // If the new heights add up, the old widths added up -> need to do a landscape to portrait rotation
+        
+        // Swap A and C
+        Node* temp = node->C;
+        node->C = node->A;
+        node->A = temp;
+
+        // Update children's UL corners
+        node->A->upperleft = node->upperleft;
+        if (node->B != NULL){
+            node->B->upperleft.first = node->upperleft.first;
+            node->B->upperleft.second = node->upperleft.second + node->A->height;
+        }
+        node->C->upperleft.first = node->upperleft.first;
+        node->C->upperleft.second = node->upperleft.second + node->A->height + b_min_dim;
+
+    } else {
+        // need to do a portrait to landscape rotation. DON'T swap A and C
+
+        // Update children's UL corners
+        node->A->upperleft = node->upperleft;
+        if (node->B != NULL){
+            node->B->upperleft.first = node->upperleft.first + node->A->width;
+            node->B->upperleft.second = node->upperleft.second;
+        }
+        node->C->upperleft.first = node->upperleft.first + node->A->width + b_min_dim;
+        node->C->upperleft.second = node->upperleft.second;
+    }
+
+    // Recurse to children
+    recursiveRotateCCW(node->A);
+    recursiveRotateCCW(node->B);
+    recursiveRotateCCW(node->C);
+}
+
+/**
+ * Helper function for rotate
+ * Swaps the values in the height and width fields of node
+*/
+void TripleTree::swapHeightWidth(Node* node){
+    unsigned int temp = node->height;
+    node->height = node->width;
+    node->width = temp;
 }

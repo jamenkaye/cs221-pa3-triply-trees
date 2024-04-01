@@ -16,7 +16,7 @@
 #define IMAGE_6 "malachi-60x87"
 
 // Added by Jamen:
-#define IMAGE_7 "starry_night_2560x2027"
+#define IMAGE_7 "custom4x3" // Note!! WITHOUT the .png extension
 #define MAX_IMG_NUM 7
 
 
@@ -45,7 +45,7 @@ void TestPrune(double tol);
 int main(int argc, char* argv[]) {
 
 	// provide one command-line argument as a number in the range of [1, 6] to specify the test image used
-	int image_number = 1; // default image number
+	int image_number = 7; // default image number
 	// set image_number from first command-line argument
 	if (argc > 1)
 		image_number = atoi(argv[1]);
@@ -229,6 +229,10 @@ void TestRotateCCW(int image_num) {
 	case 6:
 		input_path = input_path + IMAGE_6 + ".png";
 		output_path = output_path + IMAGE_6;
+		break;
+	case 7:
+		input_path = input_path + IMAGE_7 + ".png";
+		output_path = output_path + IMAGE_7;
 		break;
 	default:
 		input_path = input_path + IMAGE_6 + ".png";
