@@ -382,7 +382,7 @@ void TripleTree::recursivePrune(Node* node, RGBAPixel& color, double tol){
 /**
  * Recursive helper function for NumLeaves, returns numleaves
 */
-int TripleTree::recursiveNumLeaves(Node* node) {
+int TripleTree::recursiveNumLeaves(Node* node) const {
     if (root == NULL){
         return 0;
     }

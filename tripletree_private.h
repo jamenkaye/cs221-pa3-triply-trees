@@ -23,7 +23,7 @@ double maxDistToChildColor(Node* node, RGBAPixel& color) const;
 
 void recursivePrune(Node* node, RGBAPixel& color, double tol);
 
-int recursiveNumLeaves(Node* node); 
+int recursiveNumLeaves(Node* node) const; 
 
 void recursiveRotateCCW(Node* node);
 
