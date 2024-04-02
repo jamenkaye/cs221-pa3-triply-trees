@@ -28,3 +28,5 @@ int recursiveNumLeaves(Node* node) const;
 void recursiveRotateCCW(Node* node);
 
 void swapHeightWidth(Node* node);
+
+void recursiveFlipHorz(Node* node);

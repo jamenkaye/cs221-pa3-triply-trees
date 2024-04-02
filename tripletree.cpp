@@ -108,7 +108,11 @@ void TripleTree::Prune(double tol) {
  */
 void TripleTree::FlipHorizontal() {
     // add your implementation below
-	
+
+    //start at the root and recursively call on the tree
+    recursiveFlipHorz(root);
+
+    return;
 }
 
 /**
@@ -383,7 +387,7 @@ void TripleTree::recursivePrune(Node* node, RGBAPixel& color, double tol){
  * Recursive helper function for NumLeaves, returns numleaves
 */
 int TripleTree::recursiveNumLeaves(Node* node) const {
-    if (root == NULL){
+    if (root == nullptr){
         return 0;
     }
 
@@ -479,4 +483,45 @@ void TripleTree::swapHeightWidth(Node* node){
     unsigned int temp = node->height;
     node->height = node->width;
     node->width = temp;
+}
+
+/**
+ * Helper function for flip horizontal
+*/
+void TripleTree::recursiveFlipHorz(Node* node) {
+    if (node == nullptr) {
+        return;
+    }
+
+    if (node->width >= node->height) {
+        //swap node A and B
+        Node* tempNode = node->A;
+        node->A = node->C;
+        node->C = tempNode;
+
+
+        if (node->A != nullptr && node->C != nullptr) {
+            // Update children's UL corners
+            node->A->upperleft = node->upperleft;
+
+            if (node->B != nullptr){
+                node->C->upperleft.first = node->upperleft.first + node->A->width + node->B->width;
+            } else 
+                node->C->upperleft.first = node->upperleft.first + node->A->width;
+        }
+    } else {
+        if (node->A != nullptr && node->C != nullptr) {
+            // Update children's UL corners
+            node->A->upperleft.first = node->upperleft.first;
+            node->C->upperleft.first = node->upperleft.first;
+
+            if (node->B != nullptr) {
+                node->B->upperleft.first = node->upperleft.first;
+            }
+        }
+    }
+
+    recursiveFlipHorz(node->A);
+    recursiveFlipHorz(node->B);
+    recursiveFlipHorz(node->C);
 }

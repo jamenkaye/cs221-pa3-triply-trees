@@ -17,7 +17,9 @@
 
 // Added by Jamen:
 #define IMAGE_7 "custom4x3" // Note!! WITHOUT the .png extension
-#define MAX_IMG_NUM 7
+#define MAX_IMG_NUM 9
+#define IMAGE_8 "meow"
+#define IMAGE_9 "beep"
 
 
 #include <iostream>
@@ -45,7 +47,7 @@ void TestPrune(double tol);
 int main(int argc, char* argv[]) {
 
 	// provide one command-line argument as a number in the range of [1, 6] to specify the test image used
-	int image_number = 7; // default image number
+	int image_number = 9; // default image number
 	// set image_number from first command-line argument
 	if (argc > 1)
 		image_number = atoi(argv[1]);
@@ -102,6 +104,14 @@ void TestBuildRender(int image_num) {
 			input_path = input_path + IMAGE_7 + ".png";
 			output_path = output_path + IMAGE_7 + "-render.png";
 			break;
+		case 8: // Added by Jamen
+			input_path = input_path + IMAGE_8 + ".png";
+			output_path = output_path + IMAGE_8 + "-render.png";
+			break;
+		case 9: // Added by Jamen
+			input_path = input_path + IMAGE_9 + ".png";
+			output_path = output_path + IMAGE_9 + "-render.png";
+			break;
 		default:
 			input_path = input_path + IMAGE_6 + ".png";
 			output_path = output_path + IMAGE_6 + "-render.png";
@@ -157,6 +167,14 @@ void TestFlipHorizontal(int image_num) {
 	case 6:
 		input_path = input_path + IMAGE_6 + ".png";
 		output_path = output_path + IMAGE_6;
+		break;
+	case 8:
+		input_path = input_path + IMAGE_8 + ".png";
+		output_path = output_path + IMAGE_8;
+		break;
+	case 9:
+		input_path = input_path + IMAGE_9 + ".png";
+		output_path = output_path + IMAGE_9;
 		break;
 	default:
 		input_path = input_path + IMAGE_6 + ".png";
