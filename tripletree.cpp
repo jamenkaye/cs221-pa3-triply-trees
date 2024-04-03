@@ -96,7 +96,9 @@ PNG TripleTree::Render() const {
 void TripleTree::Prune(double tol) {
     // add your implementation below
 
-    recursivePrune(this->root, this->root->avg, tol);
+    if (root != nullptr) {
+        recursivePrune(this->root, this->root->avg, tol);
+    }
 }
 
 /**
@@ -363,6 +365,7 @@ void TripleTree::recursivePrune(Node* node, RGBAPixel& color, double tol){
         return;
     }
 
+
     if (TripleTree::maxDistToChildColor(node, color) <= tol){
         // Delete children
         delete node->A;
@@ -506,6 +509,7 @@ void TripleTree::recursiveFlipHorz(Node* node) {
 
             if (node->B != nullptr){
                 node->C->upperleft.first = node->upperleft.first + node->A->width + node->B->width;
+                node->B->upperleft.first = node->upperleft.first + node->A->width;
             } else 
                 node->C->upperleft.first = node->upperleft.first + node->A->width;
         }
